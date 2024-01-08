@@ -4,15 +4,16 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
-	"log"
 	"os"
 )
 
-func ferror(err error) {
-	if err != nil {
-		log.Fatal(err)
+/*
+	func ferror(err error) {
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-}
+*/
 func main() {
 
 	//Ouverture du fichier et création de la matrice
