@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
 	"log"
 	"math"
 	"os"
+	"time"
 )
 
 type job struct {
@@ -164,12 +166,14 @@ func main() {
 	//var couleur color.Color
 	imgOut := image.NewRGBA(image.Rect(0, 0, imgWidth, imgHeight))
 
+	start := time.Now()
+
 	//initialisation du myChannel et resultat
 	travaux := make(chan job, 750)
 	resultats := make(chan accompli, 750)
 
 	//on créer les travailleurs
-	for w := 1; w <= 10; w++ {
+	for w := 1; w <= 3; w++ {
 		go worker(travaux, resultats)
 	}
 
@@ -182,6 +186,8 @@ func main() {
 			imgOut.Set(pixel.x, pixel.y, pixel.color)
 		}
 	}
+	end := time.Now()
+	fmt.Println(end.Sub(start))
 	/*for i := 0; i < imgWidth; i++ {
 		for j := 0; j < imgHeight; j++ {
 			imgOut.Set(i, j, kuwahara(i, j, 10, imgSrc))
