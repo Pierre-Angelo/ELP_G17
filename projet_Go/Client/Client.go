@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"encoding/binary"
+	"fmt"
 	"image/jpeg"
 	"io"
 	"log"
@@ -54,40 +54,30 @@ func byteToFile(bytes []byte, fileName string) *os.File {
 	return file
 }
 
-// envoie un fichier
-func sendFile(file *os.File, conn net.Conn) error {
-	// Get file stat
-	fileInfo, _ := file.Stat()
-
-	// Send the file size
-	sizeBuf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(sizeBuf, uint64(fileInfo.Size()))
-	_, err := conn.Write(sizeBuf)
-	if err != nil {
-		return err
-	}
-
-	// Send the file contents
-	_, err = io.Copy(conn, file)
-	return err
-}
-
-func receiveFile(file string, connexion net.Conn) (*os.File, error) {
-	// Create file
+func sendFile(file string, conn net.Conn) error {
+	fmt.Println("**** Sending File ****")
 	fileImg, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer fileImg.Close()
+	buffer := make([]byte, BUFFER_SIZE)
+	_, err = io.CopyBuffer(conn, fileImg, buffer)
+	fmt.Println("**** File Sent ****")
+	return err
+}
 
-	// Get file size
-	var b []byte
-	_, err = connexion.Read(b)
-	//size := int64(binary.LittleEndian.Uint64(b))
-
-	// Get file
-	_, err = io.Copy(fileImg, connexion)
-
-	return fileImg, err
+func receiveFile(file string, connexion net.Conn) error {
+	fmt.Println("**** Receiving File ****")
+	fileImg, err := os.Create(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fileImg.Close()
+	buffer := make([]byte, BUFFER_SIZE)
+	_, err = io.CopyBuffer(fileImg, connexion, buffer)
+	fmt.Println("**** File Received ****")
+	return err
 }
 
 func main() {
@@ -113,17 +103,16 @@ func main() {
 	}
 
 	//envoie de la requette
-	err = sendFile(fileImg, connexion)
-	if err != nil {
-		println("Erreur d'envoi de fichier:", err.Error())
-		os.Exit(1)
-	}
+	//err = sendFile(FILEIN, connexion)
+	//if err != nil {
+	//println("Erreur d'envoi de fichier:", err.Error())
+	//os.Exit(1)
+	//}
 
 	//réception de la réponse
-	res, err := receiveFile(FILEOUT, connexion)
+	err = receiveFile(FILEOUT, connexion)
 	if err != nil {
 		println("Erreur de réception de fichier:", err.Error())
 		os.Exit(1)
 	}
-	_ = res.Close()
 }
