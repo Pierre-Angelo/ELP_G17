@@ -1,26 +1,10 @@
-package main
+package kuwahara
 
 import (
-	"fmt"
 	"image"
 	"image/color"
-	"image/jpeg"
-	"log"
 	"math"
-	"os"
-	"time"
 )
-
-type job struct {
-	pImage *image.Image
-	ligne  int
-}
-
-type accompli struct {
-	color color.NRGBA64
-	x     int
-	y     int
-}
 
 func get_coords(start int, length int, limit int, dir int) []int {
 	var res []int
@@ -111,7 +95,7 @@ func minIdArray(myArr []float64) int {
 	return idMini
 }
 
-func kuwahara(px int, py int, kernelSize int, imgSrc image.Image) color.NRGBA64 {
+func Kuwahara(px int, py int, kernelSize int, imgSrc image.Image) color.NRGBA64 {
 	//renvoie: un pixel dont la valeur est la moyenne du quadrant avec l'écart-type minimum
 	var means [4][3]uint32
 	var stds [4]float64
@@ -124,83 +108,4 @@ func kuwahara(px int, py int, kernelSize int, imgSrc image.Image) color.NRGBA64 
 	qId := minIdArray(stds[:])
 
 	return color.NRGBA64{uint16(means[qId][0]), uint16(means[qId][1]), uint16(means[qId][2]), math.MaxUint16}
-}
-
-func ferror(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func partitionneur(hauteur int, canal chan job, reference *image.Image) {
-	//prend la hauteur de l'image en entrée et renvoie rien
-	//fait les push dans la channel
-	for i := 0; i < hauteur; i++ {
-		canal <- job{reference, i}
-	}
-	close(canal)
-}
-
-func worker(liste_travaux chan job, resultat chan accompli) {
-	//création des trvailleurs, renvoie rien
-	for emploi := range liste_travaux {
-		largeur := (*(emploi.pImage)).Bounds().Dx()
-		for i := 0; i < largeur; i++ {
-			resultat <- accompli{kuwahara(i, emploi.ligne, 10, *(emploi.pImage)), i, emploi.ligne}
-		}
-	}
-}
-
-func main() {
-	//Ouverture du fichier et création de la matrice
-	fileImg, err := os.Open("C:\\Users\\solen\\Documents\\GitHub\\ELP_G17\\projet Go\\Titi.jpg")
-	ferror(err)
-	defer fileImg.Close()
-	imgSrc, err2 := jpeg.Decode(fileImg)
-	ferror(err2)
-
-	//création de la nouvelle image et du nouveau fichier
-	imgWidth := imgSrc.Bounds().Dx()
-	imgHeight := imgSrc.Bounds().Dy()
-
-	//var couleur color.Color
-	imgOut := image.NewRGBA(image.Rect(0, 0, imgWidth, imgHeight))
-
-	start := time.Now()
-
-	//initialisation du myChannel et resultat
-	travaux := make(chan job, 750)
-	resultats := make(chan accompli, 750)
-
-	//on créer les travailleurs
-	for w := 1; w <= 3; w++ {
-		go worker(travaux, resultats)
-	}
-
-	// un go routine remplit le canal
-	go partitionneur(imgHeight, travaux, &imgSrc)
-
-	for i := 0; i < imgWidth; i++ {
-		for j := 0; j < imgHeight; j++ {
-			pixel := <-resultats
-			imgOut.Set(pixel.x, pixel.y, pixel.color)
-		}
-	}
-	end := time.Now()
-	fmt.Println(end.Sub(start))
-	/*for i := 0; i < imgWidth; i++ {
-		for j := 0; j < imgHeight; j++ {
-			imgOut.Set(i, j, kuwahara(i, j, 10, imgSrc))
-		}
-	}*/
-	fileOut, err3 := os.Create("res.jpg")
-	ferror(err3)
-	defer fileOut.Close()
-
-	//édition du nouveau fichier
-	var opt jpeg.Options
-	opt.Quality = 80
-	err4 := jpeg.Encode(fileOut, imgOut, &opt)
-	ferror(err4)
-
 }
