@@ -84,11 +84,7 @@ func main() {
 	}
 	end := time.Now()
 	fmt.Println(end.Sub(start))
-	/*for i := 0; i < imgWidth; i++ {
-		for j := 0; j < imgHeight; j++ {
-			imgOut.Set(i, j, kuwahara(i, j, 10, imgSrc))
-		}
-	}*/
+
 	fileOut, err3 := os.Create("res.jpg")
 	ferror(err3)
 	defer fileOut.Close()

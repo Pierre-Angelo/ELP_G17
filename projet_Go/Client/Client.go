@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/gob"
 	"fmt"
 	"image/jpeg"
 	"io"
@@ -87,6 +88,9 @@ func main() {
 		log.Fatal(err)
 	}
 	defer fileImg.Close()
+	imgSrc, _ := jpeg.Decode(fileImg)
+	imgWidth := imgSrc.Bounds().Dx()
+	imgHeight := imgSrc.Bounds().Dy()
 
 	//recherche du serveur
 	serveur, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
@@ -102,6 +106,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	var matImage []uint32
+
+	for i := 0; i < imgWidth; i++ {
+		for j := 0; j < imgHeight; j++ {
+			r, g, b, a := imgSrc.At(i, j).RGBA()
+			matImage = append(matImage, r, g, b, a)
+		}
+	}
+	encoder := gob.NewEncoder(connexion)
+	encoder.Encode(&matImage)
+	connexion.Close()
+
 	//envoie de la requette
 	//err = sendFile(FILEIN, connexion)
 	//if err != nil {
@@ -110,9 +126,9 @@ func main() {
 	//}
 
 	//réception de la réponse
-	err = receiveFile(FILEOUT, connexion)
+	/* err = receiveFile(FILEOUT, connexion)
 	if err != nil {
 		println("Erreur de réception de fichier:", err.Error())
 		os.Exit(1)
-	}
+	} */
 }

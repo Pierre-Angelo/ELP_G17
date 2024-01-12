@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"io"
 	"log"
@@ -44,7 +45,7 @@ func receiveFile(file string, connexion net.Conn) error {
 }
 
 func greatings() {
-	
+
 }
 
 func main() {
@@ -70,11 +71,26 @@ func main() {
 func reponse(connexion net.Conn) {
 
 	//réception de la requete
-	err := receiveFile(FILEIN, connexion)
+	/* err := receiveFile(FILEIN, connexion)
 	if err != nil {
 		println("Erreur de réception de fichier:", err.Error())
 		os.Exit(1)
 	}
+	*/
+	dec := gob.NewDecoder(connexion)
+	imgOut := new([]uint32)
+	dec.Decode(imgOut)
+
+	fmt.Println(*imgOut)
+
+	/* fileOut, _ := os.Create("res.jpg")
+	defer fileOut.Close()
+
+	var opt jpeg.Options
+	opt.Quality = 80
+	err345 := jpeg.Encode(fileOut, *imgOut, &opt)
+
+	fmt.Println(err345) */
 
 	//ouverture du fichier de résultat
 	//fileImg, err := os.Open(FILEOUT)
@@ -86,12 +102,12 @@ func reponse(connexion net.Conn) {
 	//traitement de la requete
 
 	//réponse à la requete
-	err = sendFile(FILEOUT, connexion)
-	if err != nil {
-		println("Erreur d'envoi de fichier:", err.Error())
-		os.Exit(1)
-	}
-
+	/* 	err = sendFile(FILEOUT, connexion)
+	   	if err != nil {
+	   		println("Erreur d'envoi de fichier:", err.Error())
+	   		os.Exit(1)
+	   	}
+	*/
 	//fermeture de la connexion
 	connexion.Close()
 }
