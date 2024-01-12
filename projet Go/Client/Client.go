@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"image/jpeg"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -17,55 +19,85 @@ const (
 	BUFFER_SIZE = 1024
 )
 
-func write(bytes []byte, imgWidth int, imgHeight int, connexion net.Conn) {
-	//envoie de la signature de l'image
-	signature := "jpg:" + string(imgWidth) + "*" + string(imgHeight) + "/"
-	_, err := connexion.Write([]byte(signature))
-	if err != nil {
-		println("Write data failed:", err.Error())
-		os.Exit(1)
-	}
-
-	//envoie de l'image
-
-}
-
-func send(file string, connexion net.Conn) {
-	//ouverture de l'image
-	fileImg, err := os.Open(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer fileImg.Close()
-
+// donne les dimentions de l'image (largeur*hauteur)
+func imgSize(fileImg *os.File) (int, int) {
 	imgSrc, err := jpeg.Decode(fileImg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	imgWidth := imgSrc.Bounds().Dx()
 	imgHeight := imgSrc.Bounds().Dy()
-
-	//convertion de l'image en bytes
-	fileInfo, _ := fileImg.Stat()
-	var size int64 = fileInfo.Size()
-	bytes := make([]byte, size)
-	buffer := bufio.NewReader(fileImg)
-	_, err = buffer.Read(bytes)
-
-	//écriture de l'image
-	write(bytes, imgWidth, imgHeight, connexion)
+	return imgWidth, imgHeight
 }
 
-func receive(file string, connexion net.Conn) {
-	buffer := make([]byte, 2048*1536)
-	_, err := connexion.Read(buffer)
+// convertie un fichier en un tableau de bytes
+func fileToByte(file *os.File) []byte {
+	fileInfo, _ := file.Stat()
+	var size int64 = fileInfo.Size()
+	bytes := make([]byte, size)
+	buffer := bufio.NewReader(file)
+	_, err := buffer.Read(bytes)
 	if err != nil {
-		println("Read data failed:", err.Error())
-		os.Exit(1)
+		log.Fatal(err)
 	}
+	return bytes
+}
+
+// convertie un tableau de bytes en fichier
+func byteToFile(bytes []byte, fileName string) *os.File {
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	buffer := bufio.NewWriter(file)
+	_, err = buffer.Write(bytes)
+	return file
+}
+
+// envoie un fichier
+func sendFile(file *os.File, conn net.Conn) error {
+	// Get file stat
+	fileInfo, _ := file.Stat()
+
+	// Send the file size
+	sizeBuf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(sizeBuf, uint64(fileInfo.Size()))
+	_, err := conn.Write(sizeBuf)
+	if err != nil {
+		return err
+	}
+
+	// Send the file contents
+	_, err = io.Copy(conn, file)
+	return err
+}
+
+func receiveFile(file string, connexion net.Conn) (*os.File, error) {
+	// Create file
+	fileImg, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get file size
+	var b []byte
+	_, err = connexion.Read(b)
+	//size := int64(binary.LittleEndian.Uint64(b))
+
+	// Get file
+	_, err = io.Copy(fileImg, connexion)
+
+	return fileImg, err
 }
 
 func main() {
+
+	fileImg, err := os.Open(FILEIN)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fileImg.Close()
+
 	//recherche du serveur
 	serveur, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
 	if err != nil {
@@ -73,7 +105,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	//établisement de la connexion
+	//établissement de la connexion
 	connexion, err := net.DialTCP(TYPE, nil, serveur)
 	if err != nil {
 		println("Dial failed:", err.Error())
@@ -81,28 +113,17 @@ func main() {
 	}
 
 	//envoie de la requette
-	send(FILEIN, connexion)
+	err = sendFile(fileImg, connexion)
+	if err != nil {
+		println("Erreur d'envoi de fichier:", err.Error())
+		os.Exit(1)
+	}
 
 	//réception de la réponse
-	receive(FILEOUT, connexion)
-
-	//utilisation de la réponse
-	//println(string(buffer))
-	//imageOut := (buffer)
-
-	//fermeture de la connexion
-	connexion.Close()
-
-	//création de la nouvelle image
-	fileOut, err := os.Create("res.jpg")
+	res, err := receiveFile(FILEOUT, connexion)
 	if err != nil {
-		log.Fatal(err)
+		println("Erreur de réception de fichier:", err.Error())
+		os.Exit(1)
 	}
-	defer fileOut.Close()
-	var opt jpeg.Options
-	opt.Quality = 80
-	//err = jpeg.Encode(fileOut, imgOut, &opt)
-	if err != nil {
-		log.Fatal(err)
-	}
+	_ = res.Close()
 }
