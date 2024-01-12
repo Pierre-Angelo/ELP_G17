@@ -7,6 +7,7 @@ import (
 	"image/jpeg"
 	"log"
 	"os"
+	k "projet_Go/kuwahara"
 	"time"
 )
 
@@ -41,7 +42,7 @@ func worker(liste_travaux chan job, resultat chan accompli) {
 	for emploi := range liste_travaux {
 		largeur := (*(emploi.pImage)).Bounds().Dx()
 		for i := 0; i < largeur; i++ {
-			resultat <- accompli{Kuwahara(i, emploi.ligne, 20, *(emploi.pImage)), i, emploi.ligne}
+			resultat <- accompli{k.Kuwahara(i, emploi.ligne, 20, *(emploi.pImage)), i, emploi.ligne}
 		}
 	}
 }
