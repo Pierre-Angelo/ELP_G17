@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/gob"
-	"fmt"
-	"io"
+	"image"
+	"image/color"
 	"log"
+	"math"
 	"net"
 	"os"
 )
@@ -18,34 +19,49 @@ const (
 	BUFFER_SIZE = 1024
 )
 
-func sendFile(file string, conn net.Conn) error {
-	fmt.Println("**** Sending File ****")
-	fileImg, err := os.Open(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer fileImg.Close()
-	buffer := make([]byte, BUFFER_SIZE)
-	_, err = io.CopyBuffer(conn, fileImg, buffer)
-	fmt.Println("**** File Sent ****")
+func sendImg(imgData []uint32, conn net.Conn) error {
+	encoder := gob.NewEncoder(conn)
+	err := encoder.Encode(&imgData)
 	return err
 }
 
-func receiveFile(file string, connexion net.Conn) error {
-	fmt.Println("**** Receiving File ****")
-	fileImg, err := os.Create(file)
-	if err != nil {
-		log.Fatal(err)
+func receiveImg(connexion net.Conn) (*image.RGBA, error) {
+	dec := gob.NewDecoder(connexion)
+	ob := new([]uint32)
+	err := dec.Decode(ob)
+
+	imgData := *ob
+
+	imgWidth := int(imgData[0])
+	imgHeight := int(imgData[1])
+	imgSrc := image.NewRGBA(image.Rect(0, 0, imgWidth, imgHeight))
+
+	i := 2
+	for x := 0; x < imgWidth; x++ {
+		for y := 0; y < imgHeight; y++ {
+			pcolor := color.NRGBA64{uint16(imgData[i]), uint16(imgData[i+1]), uint16(imgData[i+2]), math.MaxUint16}
+			imgSrc.Set(x, y, pcolor)
+			i += 3
+		}
 	}
-	defer fileImg.Close()
-	buffer := make([]byte, BUFFER_SIZE)
-	_, err = io.CopyBuffer(fileImg, connexion, buffer)
-	fmt.Println("**** File Received ****")
-	return err
+	return imgSrc, err
 }
 
-func greatings() {
+func purple(imgSrc *image.RGBA) []uint32 {
+	imgWidth := imgSrc.Bounds().Dx()
+	imgHeight := imgSrc.Bounds().Dy()
 
+	var imgDataOut []uint32
+	imgDataOut = append(imgDataOut, uint32(imgWidth))
+	imgDataOut = append(imgDataOut, uint32(imgHeight))
+
+	for x := 0; x < imgWidth; x++ {
+		for y := 0; y < imgHeight; y++ {
+			r, g, b, _ := imgSrc.At(x, y).RGBA()
+			imgDataOut = append(imgDataOut, r, g*0, b)
+		}
+	}
+	return imgDataOut
 }
 
 func main() {
@@ -69,45 +85,19 @@ func main() {
 }
 
 func reponse(connexion net.Conn) {
-
-	//réception de la requete
-	/* err := receiveFile(FILEIN, connexion)
+	imgSrc, err := receiveImg(connexion)
 	if err != nil {
-		println("Erreur de réception de fichier:", err.Error())
+		println("Erreur de décodage de l'image", err.Error())
 		os.Exit(1)
 	}
-	*/
-	dec := gob.NewDecoder(connexion)
-	imgOut := new([]uint32)
-	dec.Decode(imgOut)
 
-	fmt.Println(*imgOut)
+	DataRes := purple(imgSrc)
 
-	/* fileOut, _ := os.Create("res.jpg")
-	defer fileOut.Close()
+	err = sendImg(DataRes, connexion)
+	if err != nil {
+		println("Erreur de décodage de l'image", err.Error())
+		os.Exit(1)
+	}
 
-	var opt jpeg.Options
-	opt.Quality = 80
-	err345 := jpeg.Encode(fileOut, *imgOut, &opt)
-
-	fmt.Println(err345) */
-
-	//ouverture du fichier de résultat
-	//fileImg, err := os.Open(FILEOUT)
-	//if err != nil {
-	//log.Fatal(err)
-	//}
-	//defer fileImg.Close()
-
-	//traitement de la requete
-
-	//réponse à la requete
-	/* 	err = sendFile(FILEOUT, connexion)
-	   	if err != nil {
-	   		println("Erreur d'envoi de fichier:", err.Error())
-	   		os.Exit(1)
-	   	}
-	*/
-	//fermeture de la connexion
 	connexion.Close()
 }

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"encoding/gob"
-	"fmt"
+	"image"
+	"image/color"
 	"image/jpeg"
-	"io"
 	"log"
+	"math"
 	"net"
 	"os"
 )
@@ -21,64 +21,55 @@ const (
 )
 
 // donne les dimentions de l'image (largeur*hauteur)
-func imgSize(fileImg *os.File) (int, int) {
+func getImg(fileImg *os.File) (image.Image, int, int) {
 	imgSrc, err := jpeg.Decode(fileImg)
 	if err != nil {
 		log.Fatal(err)
 	}
 	imgWidth := imgSrc.Bounds().Dx()
 	imgHeight := imgSrc.Bounds().Dy()
-	return imgWidth, imgHeight
+	return imgSrc, imgWidth, imgHeight
 }
 
-// convertie un fichier en un tableau de bytes
-func fileToByte(file *os.File) []byte {
-	fileInfo, _ := file.Stat()
-	var size int64 = fileInfo.Size()
-	bytes := make([]byte, size)
-	buffer := bufio.NewReader(file)
-	_, err := buffer.Read(bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return bytes
-}
+func sendImg(fileImg *os.File, conn net.Conn) error {
+	imgSrc, imgWidth, imgHeight := getImg(fileImg)
 
-// convertie un tableau de bytes en fichier
-func byteToFile(bytes []byte, fileName string) *os.File {
-	file, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	buffer := bufio.NewWriter(file)
-	_, err = buffer.Write(bytes)
-	return file
-}
+	var imgData []uint32
+	imgData = append(imgData, uint32(imgWidth))
+	imgData = append(imgData, uint32(imgHeight))
 
-func sendFile(file string, conn net.Conn) error {
-	fmt.Println("**** Sending File ****")
-	fileImg, err := os.Open(file)
-	if err != nil {
-		log.Fatal(err)
+	for i := 0; i < imgWidth; i++ {
+		for j := 0; j < imgHeight; j++ {
+			r, g, b, _ := imgSrc.At(i, j).RGBA()
+			imgData = append(imgData, r, g, b)
+		}
 	}
-	defer fileImg.Close()
-	buffer := make([]byte, BUFFER_SIZE)
-	_, err = io.CopyBuffer(conn, fileImg, buffer)
-	fmt.Println("**** File Sent ****")
+	encoder := gob.NewEncoder(conn)
+	err := encoder.Encode(&imgData)
+
 	return err
 }
 
-func receiveFile(file string, connexion net.Conn) error {
-	fmt.Println("**** Receiving File ****")
-	fileImg, err := os.Create(file)
-	if err != nil {
-		log.Fatal(err)
+func receiveImg(connexion net.Conn) (*image.RGBA, error) {
+	dec := gob.NewDecoder(connexion)
+	ob := new([]uint32)
+	err := dec.Decode(ob)
+
+	imgData := *ob
+
+	imgWidth := int(imgData[0])
+	imgHeight := int(imgData[1])
+	imgSrc := image.NewRGBA(image.Rect(0, 0, imgWidth, imgHeight))
+
+	i := 2
+	for x := 0; x < imgWidth; x++ {
+		for y := 0; y < imgHeight; y++ {
+			pcolor := color.NRGBA64{uint16(imgData[i]), uint16(imgData[i+1]), uint16(imgData[i+2]), math.MaxUint16}
+			imgSrc.Set(x, y, pcolor)
+			i += 3
+		}
 	}
-	defer fileImg.Close()
-	buffer := make([]byte, BUFFER_SIZE)
-	_, err = io.CopyBuffer(fileImg, connexion, buffer)
-	fmt.Println("**** File Received ****")
-	return err
+	return imgSrc, err
 }
 
 func main() {
@@ -88,9 +79,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer fileImg.Close()
-	imgSrc, _ := jpeg.Decode(fileImg)
-	imgWidth := imgSrc.Bounds().Dx()
-	imgHeight := imgSrc.Bounds().Dy()
 
 	//recherche du serveur
 	serveur, err := net.ResolveTCPAddr(TYPE, HOST+":"+PORT)
@@ -106,29 +94,31 @@ func main() {
 		os.Exit(1)
 	}
 
-	var matImage []uint32
-
-	for i := 0; i < imgWidth; i++ {
-		for j := 0; j < imgHeight; j++ {
-			r, g, b, a := imgSrc.At(i, j).RGBA()
-			matImage = append(matImage, r, g, b, a)
-		}
-	}
-	encoder := gob.NewEncoder(connexion)
-	encoder.Encode(&matImage)
-	connexion.Close()
-
-	//envoie de la requette
-	//err = sendFile(FILEIN, connexion)
-	//if err != nil {
-	//println("Erreur d'envoi de fichier:", err.Error())
-	//os.Exit(1)
-	//}
-
-	//réception de la réponse
-	/* err = receiveFile(FILEOUT, connexion)
+	err = sendImg(fileImg, connexion)
 	if err != nil {
-		println("Erreur de réception de fichier:", err.Error())
+		println("Erreur d'envoi de fichier:", err.Error())
 		os.Exit(1)
-	} */
+	}
+
+	imgOut, err := receiveImg(connexion)
+	if err != nil {
+		println("Erreur de réception de l'image", err.Error())
+		os.Exit(1)
+	}
+
+	fileOut, err := os.Create(FILEOUT)
+	if err != nil {
+		println("Erreur de création de l'image", err.Error())
+		os.Exit(1)
+	}
+	defer fileOut.Close()
+
+	var opt jpeg.Options
+	opt.Quality = 80
+	err = jpeg.Encode(fileOut, imgOut, &opt)
+	if err != nil {
+		println("Erreur d'encodage de l'image", err.Error())
+		os.Exit(1)
+	}
+
 }
