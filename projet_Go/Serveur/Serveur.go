@@ -11,12 +11,9 @@ import (
 )
 
 const (
-	HOST        = "localhost"
-	PORT        = "8080"
-	TYPE        = "tcp"
-	FILEIN      = "temp.jpg"
-	FILEOUT     = "res.jpg"
-	BUFFER_SIZE = 1024
+	HOST = "localhost"
+	PORT = "8080"
+	TYPE = "tcp"
 )
 
 func sendImg(imgData []uint32, conn net.Conn) error {
@@ -25,7 +22,7 @@ func sendImg(imgData []uint32, conn net.Conn) error {
 	return err
 }
 
-func receiveImg(connexion net.Conn) (*image.RGBA, error) {
+func receiveImg(connexion net.Conn) (*image.RGBA, int, int, error) {
 	dec := gob.NewDecoder(connexion)
 	ob := new([]uint32)
 	err := dec.Decode(ob)
@@ -44,27 +41,40 @@ func receiveImg(connexion net.Conn) (*image.RGBA, error) {
 			i += 3
 		}
 	}
-	return imgSrc, err
+	return imgSrc, imgWidth, imgHeight, err
 }
 
-func purple(imgSrc *image.RGBA) []uint32 {
-	imgWidth := imgSrc.Bounds().Dx()
-	imgHeight := imgSrc.Bounds().Dy()
+func reponse(connexion net.Conn, travaux chan job) {
+	resultats := make(chan accompli, 750)
+	defer close(resultats)
 
-	var imgDataOut []uint32
-	imgDataOut = append(imgDataOut, uint32(imgWidth))
-	imgDataOut = append(imgDataOut, uint32(imgHeight))
-
-	for x := 0; x < imgWidth; x++ {
-		for y := 0; y < imgHeight; y++ {
-			r, g, b, _ := imgSrc.At(x, y).RGBA()
-			imgDataOut = append(imgDataOut, r, g*0, b)
-		}
+	imgSrc, imgWidth, imgHeight, err := receiveImg(connexion)
+	if err != nil {
+		println("Erreur de décodage de l'image", err.Error())
+		os.Exit(1)
 	}
-	return imgDataOut
+
+	DataRes := MainNumberTwo(imgSrc, imgWidth, imgHeight, travaux, resultats)
+
+	err = sendImg(DataRes, connexion)
+	if err != nil {
+		println("Erreur de décodage de l'image", err.Error())
+		os.Exit(1)
+	}
+
+	connexion.Close()
 }
 
 func main() {
+	//initialisation du myChannel et resultat
+	travaux := make(chan job, 750)
+	defer close(travaux)
+
+	//on créer les travailleurs
+	for w := 1; w <= 8; w++ {
+		go worker(travaux)
+	}
+
 	//ouverture du listener
 	listener, err := net.Listen(TYPE, HOST+":"+PORT)
 	if err != nil {
@@ -80,24 +90,6 @@ func main() {
 			log.Fatal(err)
 			os.Exit(1)
 		}
-		go reponse(connexion)
+		go reponse(connexion, travaux)
 	}
-}
-
-func reponse(connexion net.Conn) {
-	imgSrc, err := receiveImg(connexion)
-	if err != nil {
-		println("Erreur de décodage de l'image", err.Error())
-		os.Exit(1)
-	}
-
-	DataRes := purple(imgSrc)
-
-	err = sendImg(DataRes, connexion)
-	if err != nil {
-		println("Erreur de décodage de l'image", err.Error())
-		os.Exit(1)
-	}
-
-	connexion.Close()
 }

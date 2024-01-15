@@ -1,4 +1,4 @@
-package kuwahara
+package main
 
 import (
 	"image"
@@ -21,7 +21,7 @@ func get_coords(start int, length int, limit int, dir int) []int {
 	return res
 }
 
-func get_quads(px int, py int, kernelSize int, imgSrc image.Image) [][][3]uint32 {
+func get_quads(px int, py int, kernelSize int, imgSrc image.RGBA) [][][3]uint32 {
 	/*	renvoie : liste des 4 quadrants centrés en (x,y) (un quadrant est une liste de pixels),
 		les quadrant ne font pas forcement la même taille (voire schéma).
 		un quadrant prend est au maximum la taille d'un carré de de la taille du kernel (kSize) et au minimum le pixel central*/
@@ -95,7 +95,7 @@ func minIdArray(myArr []float64) int {
 	return idMini
 }
 
-func Kuwahara(px int, py int, kernelSize int, imgSrc image.Image) color.NRGBA64 {
+func Kuwahara(px int, py int, kernelSize int, imgSrc image.RGBA) color.NRGBA64 {
 	//renvoie: un pixel dont la valeur est la moyenne du quadrant avec l'écart-type minimum
 	var means [4][3]uint32
 	var stds [4]float64

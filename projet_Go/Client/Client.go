@@ -12,12 +12,11 @@ import (
 )
 
 const (
-	HOST        = "localhost"
-	PORT        = "8080"
-	TYPE        = "tcp"
-	FILEIN      = "Titi.jpg"
-	FILEOUT     = "res.jpg"
-	BUFFER_SIZE = 1024
+	HOST    = "localhost"
+	PORT    = "8080"
+	TYPE    = "tcp"
+	FILEIN  = "Titi.jpg"
+	FILEOUT = "res.jpg"
 )
 
 // donne les dimentions de l'image (largeur*hauteur)
@@ -120,5 +119,4 @@ func main() {
 		println("Erreur d'encodage de l'image", err.Error())
 		os.Exit(1)
 	}
-
 }
