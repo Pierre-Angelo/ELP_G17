@@ -1,6 +1,8 @@
 package main
 
 import (
+	. "Serveur/Kuwahara"
+	. "Serveur/Worker"
 	"encoding/gob"
 	"image"
 	"image/color"
@@ -44,8 +46,8 @@ func receiveImg(connexion net.Conn) (*image.RGBA, int, int, error) {
 	return imgSrc, imgWidth, imgHeight, err
 }
 
-func reponse(connexion net.Conn, travaux chan job) {
-	resultats := make(chan accompli, 750)
+func reponse(connexion net.Conn, travaux chan Job) {
+	resultats := make(chan Accompli, 750)
 	defer close(resultats)
 
 	imgSrc, imgWidth, imgHeight, err := receiveImg(connexion)
@@ -54,7 +56,7 @@ func reponse(connexion net.Conn, travaux chan job) {
 		os.Exit(1)
 	}
 
-	DataRes := MainNumberTwo(imgSrc, imgWidth, imgHeight, travaux, resultats)
+	DataRes := ImgProcessor(imgSrc, imgWidth, imgHeight, travaux, resultats)
 
 	err = sendImg(DataRes, connexion)
 	if err != nil {
@@ -67,12 +69,12 @@ func reponse(connexion net.Conn, travaux chan job) {
 
 func main() {
 	//initialisation du myChannel et resultat
-	travaux := make(chan job, 750)
+	travaux := make(chan Job, 750)
 	defer close(travaux)
 
 	//on créer les travailleurs
 	for w := 1; w <= 8; w++ {
-		go worker(travaux)
+		go Worker(travaux, Kuwahara)
 	}
 
 	//ouverture du listener
