@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -12,11 +13,9 @@ import (
 )
 
 const (
-	HOST    = "localhost"
-	PORT    = "8080"
-	TYPE    = "tcp"
-	FILEIN  = "Titi.jpg"
-	FILEOUT = "res.jpg"
+	HOST = "localhost"
+	PORT = "8080"
+	TYPE = "tcp"
 )
 
 // donne les dimentions de l'image (largeur*hauteur)
@@ -71,12 +70,27 @@ func receiveImg(connexion net.Conn) (*image.RGBA, error) {
 	return imgSrc, err
 }
 
-func main() {
+func getFileImg() (*os.File, string) {
+	var fileIn string
+	var fileOut string
 
-	fileImg, err := os.Open(FILEIN)
+	fmt.Println("Entrez le nom du ficher jpg à traiter (avec le .jpg) : ")
+	fmt.Scanln(&fileIn)
+
+	img, err := os.Open(fileIn)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("Entrez le nom du ficher jpg en sortie (avec le .jpg) : ")
+	fmt.Scanln(&fileOut)
+
+	return img, fileOut
+}
+
+func main() {
+
+	fileImg, nameImgOut := getFileImg()
 	defer fileImg.Close()
 
 	//recherche du serveur
@@ -105,7 +119,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fileOut, err := os.Create(FILEOUT)
+	fileOut, err := os.Create(nameImgOut)
 	if err != nil {
 		println("Erreur de création de l'image", err.Error())
 		os.Exit(1)
