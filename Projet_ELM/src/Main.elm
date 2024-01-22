@@ -1,9 +1,9 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, text,strong)
+import Html exposing (..)
 import Html.Events exposing (onClick)
-
+import Html.Attributes exposing (..)
 
 
 -- MAIN
@@ -21,7 +21,7 @@ type alias  Model =   String
 
 
 init : Model
-init = " Guess it!"
+init = "Guess it!"
 
 
 
@@ -40,8 +40,7 @@ update msg model =
       "Got it! It is indeed"
 
     Reveal ->
-      "answer"
-
+      "answer" 
 
 
 -- VIEW
@@ -49,7 +48,13 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ strong  [Html.String.Attribute.attribute "Guess it"]
-    
+  div [ style "padding-left" "13cm", style "font-family" "sans-serif",style "line-height" "1cm"] 
+    [ h1 [ style"font-size" "50px"] [ text model]
+      ,ul [] [ li [] [ text "meaning" , ul [] [ li [] [ text "noun"] 
+                                              , li [] [ text "verb"]]]]
+      ,div[][strong [] [text "Type in to guess"]]
+      ,input [][]
+      ,div [][input [ type_ "checkbox",onClick Reveal ] [], text "show it"]
     ]
+       
+        
