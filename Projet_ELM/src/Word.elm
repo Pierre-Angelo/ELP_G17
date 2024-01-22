@@ -1,40 +1,17 @@
 module Word exposing (..)
 
 import String
-import Basics
 import Random
-import Http
-import Html
-import Time
-import Task
-
-f = "../static/words.txt"
-
-type Msg
-    = GotText (Result Http.Error String)
-
-getText: Cmd msg -> String
-getText msg =
-  case msg of
-    GotText result ->
-      case result of
-        Ok fullText ->
-          fullText
-
-        Err _ ->
-          ""
-
-getString: String -> String
-getString file =
-    getText (Http.get {url = file, expect = Http.expectString GotText})
 
 stringToTab: String -> List String
 stringToTab string =
     String.split " " string
 
-random min max =
-    Random.step (Random.int min max) (Random.initialSeed 1)
+random: Int -> Int -> Int -> Int
+random min max seed =
+    let (a,b) = Random.step (Random.int min max) (Random.initialSeed seed) in a
 
+getElem: List String -> Int -> String
 getElem tab i = case tab of
     [] -> ""
     (w::ws) -> if i == 0 then
@@ -43,3 +20,7 @@ getElem tab i = case tab of
                     ""
                else
                     getElem ws (i-1)
+
+randomWord: String -> Int -> String
+randomWord txt seed =
+    getElem (stringToTab txt) (random 0 999 seed)
