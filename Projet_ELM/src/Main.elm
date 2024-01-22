@@ -7,25 +7,33 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Http
 import Word
+import Platform.Cmd as Cmd
 
 
 -- MAIN
 
 
 main =
-  Browser.sandbox { init = init, update = update, view = view }
+  Browser.element 
+  { init = init
+  , update = update
+  ,subscriptions = subscriptions
+  , view = view }
 
 
 
 -- MODEL
 
 
-type alias  Model =  { guess : String  , title : String, displayAnswer : Bool,lesMots : String,tmp : Cmd Msg}
-myurl : String
-myurl = "https://perso.liris.cnrs.fr/tristan.roussillon/GuessIt/thousand_words_things_explainer.txt"
+type alias  Model =  { guess : String  , title : String, displayAnswer : Bool,lesMots : String}
 
-init : Model
-init = { guess = "Type in to guess", title = "Guess it!", displayAnswer = False ,lesMots = "rien", tmp = Http.get {url = myurl, expect = Http.expectString GotText}}
+initModel : Model
+initModel = { guess = "Type in to guess", title = "Guess it!", displayAnswer = False ,lesMots = "rien"}
+myurl : String
+myurl = "http://localhost:8000/static/words.txt"
+
+init : () -> (Model, Cmd Msg)
+init _ = (initModel, Http.get {url = myurl, expect = Http.expectString GotText})
 answer : String
 answer = "answer"
 
@@ -38,27 +46,34 @@ type Msg
     |GotText (Result Http.Error String)
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Guess newGuess ->
       if newGuess == answer then 
-        {model |guess = "Got it! It is indeed " ++ answer} 
+        ({model |guess = "Got it! It is indeed " ++ answer},Cmd.none)
       else
-        {model |guess = "Type in to guess" }
+        ({model |guess = "Type in to guess" },Cmd.none)
     Reveal  ->
       if not model.displayAnswer then
-        {model|title = answer 
-              ,displayAnswer = True}
+        ({model|title = answer 
+              ,displayAnswer = True},Cmd.none)
       else 
-        {model|title = "Guess it!" 
-              ,displayAnswer = False}
+        ({model|title = "Guess it!" 
+              ,displayAnswer = False},Cmd.none)
     GotText result ->
        case result of
         Ok text ->
-          {model | lesMots = text}
+          ({model | lesMots = text},Cmd.none)
         Err _ ->
-          {model | lesMots = "une erreur"}
+          ({model | lesMots = "une erreur"},Cmd.none)
+
+-- SUBSCRIPTIONS
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+     
 
 -- VIEW
 
