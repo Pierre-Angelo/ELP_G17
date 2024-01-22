@@ -35,7 +35,7 @@ myurl : String
 myurl = "http://localhost:8000/static/words.txt"
 
 init : () -> (Model, Cmd Msg)
-init _ = (initModel, Http.get {url = myurl, expect = Http.expectString GotText})
+init _ = (initModel, Task.perform AdjustTimeZone Time.here)
 initAnswer: Cmd Msg
 initAnswer = Http.get {url = myurl, expect = Http.expectString GotText}
 toto = Task.perform AdjustTimeZone Time.here
@@ -69,13 +69,13 @@ update msg model =
     GotText result ->
        case result of
         Ok text ->
-          ({model | answer = (Word.randomWord text 10)}, Cmd.none)
+          ({model | answer = (Word.randomWord text (Time.toMillis model.zone model.time))}, Cmd.none)
         Err _ ->
           ({model | answer = "une erreur"}, Cmd.none)
     Tick newTime ->
-        ({model | time = newTime}, Cmd.none)
+        ({model | time = newTime}, Http.get {url = myurl, expect = Http.expectString GotText})
     AdjustTimeZone newZone ->
-        ({model | zone = newZone}, Cmd.none)
+        ({model | zone = newZone}, Task.perform Tick Time.now)
 
 -- SUBSCRIPTIONS
 
