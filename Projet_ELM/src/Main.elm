@@ -8,6 +8,8 @@ import Html.Events exposing (onInput)
 import Http
 import Word
 import Platform.Cmd as Cmd
+import Task
+import Time
 
 
 -- MAIN
@@ -25,17 +27,18 @@ main =
 -- MODEL
 
 
-type alias  Model =  { guess : String  , title : String, displayAnswer : Bool,lesMots : String}
+type alias  Model =  { zone : Time.Zone, time : Time.Posix, guess : String  , title : String, displayAnswer : Bool, answer : String}
 
 initModel : Model
-initModel = { guess = "Type in to guess", title = "Guess it!", displayAnswer = False ,lesMots = "rien"}
+initModel = {zone = Time.utc, time = (Time.millisToPosix 0), guess = "Type in to guess", title = "Guess it!", displayAnswer = False, answer = "rien"}
 myurl : String
 myurl = "http://localhost:8000/static/words.txt"
 
 init : () -> (Model, Cmd Msg)
 init _ = (initModel, Http.get {url = myurl, expect = Http.expectString GotText})
-answer : String
-answer = "answer"
+initAnswer: Cmd Msg
+initAnswer = Http.get {url = myurl, expect = Http.expectString GotText}
+toto = Task.perform AdjustTimeZone Time.here
 
 -- UPDATE
 
@@ -43,30 +46,36 @@ answer = "answer"
 type Msg
   = Guess String
     | Reveal 
-    |GotText (Result Http.Error String)
+    | GotText (Result Http.Error String)
+    | Tick Time.Posix
+    | AdjustTimeZone Time.Zone
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Guess newGuess ->
-      if newGuess == answer then 
-        ({model |guess = "Got it! It is indeed " ++ answer},Cmd.none)
+      if newGuess == model.answer then
+        ({model |guess = "Got it! It is indeed " ++ model.answer}, Cmd.none)
       else
-        ({model |guess = "Type in to guess" },Cmd.none)
+        ({model |guess = "Type in to guess" }, Cmd.none)
     Reveal  ->
       if not model.displayAnswer then
-        ({model|title = answer 
-              ,displayAnswer = True},Cmd.none)
+        ({model|title = model.answer
+              ,displayAnswer = True}, Cmd.none)
       else 
         ({model|title = "Guess it!" 
-              ,displayAnswer = False},Cmd.none)
+              ,displayAnswer = False}, Cmd.none)
     GotText result ->
        case result of
         Ok text ->
-          ({model | lesMots = text},Cmd.none)
+          ({model | answer = (Word.randomWord text 10)}, Cmd.none)
         Err _ ->
-          ({model | lesMots = "une erreur"},Cmd.none)
+          ({model | answer = "une erreur"}, Cmd.none)
+    Tick newTime ->
+        ({model | time = newTime}, Cmd.none)
+    AdjustTimeZone newZone ->
+        ({model | zone = newZone}, Cmd.none)
 
 -- SUBSCRIPTIONS
 
@@ -86,8 +95,7 @@ view model =
                                               , li [] [ text "verb"]]]]
       ,div[][strong [] [text model.guess]]
       ,input [ onInput Guess ][]
-      ,div [][input [ type_ "checkbox", onClick Reveal] [], text "show it"] 
-      ,div [][text model.lesMots]
+      ,div [][input [ type_ "checkbox", onClick Reveal] [], text "show it"]
     ]
        
         
