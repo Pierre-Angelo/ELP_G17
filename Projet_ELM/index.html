@@ -5453,7 +5453,7 @@ var $elm$time$Time$Posix = function (a) {
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
 var $author$project$Main$initModel = {
-	answer: 'rien',
+	answer: 'null',
 	displayAnswer: false,
 	guess: 'Type in to guess',
 	json: $author$project$Main$Loading,
@@ -6317,7 +6317,7 @@ var $author$project$Main$getJson = function (word) {
 	return $elm$http$Http$get(
 		{
 			expect: A2($elm$http$Http$expectJson, $author$project$Main$GotJson, $author$project$Main$nameDecoder),
-			url: 'https://api.dictionaryapi.dev/api/v2/entries/en/' + 'course'
+			url: 'https://api.dictionaryapi.dev/api/v2/entries/en/' + word
 		});
 };
 var $author$project$Main$myurl = 'http://localhost:8000/static/words.txt';
@@ -6488,7 +6488,11 @@ var $author$project$Main$update = F2(
 									text,
 									A2($elm$time$Time$toMillis, model.zone, model.time))
 							}),
-						$author$project$Main$getJson(model.answer));
+						$author$project$Main$getJson(
+							A2(
+								$author$project$Word$randomWord,
+								text,
+								A2($elm$time$Time$toMillis, model.zone, model.time))));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -6596,7 +6600,7 @@ var $author$project$Main$describe = function (lst) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text(x.word),
+						$elm$html$Html$text('meaning'),
 						A2(
 						$elm$html$Html$ul,
 						_List_Nil,
@@ -6718,9 +6722,10 @@ var $author$project$Main$view = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				A2($elm$html$Html$Attributes$style, 'padding-left', '8cm'),
+				A2($elm$html$Html$Attributes$style, 'padding-left', '15%'),
 				A2($elm$html$Html$Attributes$style, 'font-family', 'sans-serif'),
-				A2($elm$html$Html$Attributes$style, 'line-height', '1cm')
+				A2($elm$html$Html$Attributes$style, 'line-height', '1cm'),
+				A2($elm$html$Html$Attributes$style, 'font-size', '85%')
 			]),
 		_List_fromArray(
 			[
@@ -6737,7 +6742,10 @@ var $author$project$Main$view = function (model) {
 				$author$project$Main$define(model),
 				A2(
 				$elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'font-size', '120%')
+					]),
 				_List_fromArray(
 					[
 						A2(
@@ -6757,7 +6765,10 @@ var $author$project$Main$view = function (model) {
 				_List_Nil),
 				A2(
 				$elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'font-size', '120%')
+					]),
 				_List_fromArray(
 					[
 						A2(

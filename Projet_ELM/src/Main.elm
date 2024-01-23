@@ -31,7 +31,7 @@ main =
 type alias  Model =  { zone : Time.Zone, time : Time.Posix, guess : String  , title : String, displayAnswer : Bool, answer : String, json : JsonContent}
 
 initModel : Model
-initModel = {zone = Time.utc, time = (Time.millisToPosix 0), guess = "Type in to guess", title = "Guess it!", displayAnswer = False, answer = "rien", json = Loading}
+initModel = {zone = Time.utc, time = (Time.millisToPosix 0), guess = "Type in to guess", title = "Guess it!", displayAnswer = False, answer = "null", json = Loading}
 myurl : String
 myurl = "http://localhost:8000/static/words.txt"
 
@@ -87,7 +87,7 @@ update msg model =
     GotText result ->
        case result of
         Ok text ->
-          ({model | answer = (Word.randomWord text (Time.toMillis model.zone model.time))}, getJson model.answer)
+          ({model | answer = (Word.randomWord text (Time.toMillis model.zone model.time))}, getJson (Word.randomWord text (Time.toMillis model.zone model.time)))
         Err _ ->
           ({model | answer = "une erreur"}, Cmd.none)
     Tick newTime ->
@@ -112,20 +112,13 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-  div [ style "padding-left" "8cm", style "font-family" "sans-serif",style "line-height" "1cm"]
+  div [ style "padding-left" "15%", style "font-family" "sans-serif",style "line-height" "1cm", style "font-size" "85%"]
     [ h1 [ style"font-size" "50px"] [ text model.title]
       ,(define model)
-      ,div[][strong [] [text model.guess]]
+      ,div[style"font-size" "120%"][strong [] [text model.guess]]
       ,input [ onInput Guess ][]
-      ,div [][input [ type_ "checkbox", onClick Reveal] [], text "show it"]
+      ,div [style"font-size" "120%"][input [ type_ "checkbox", onClick Reveal] [], text "show it"]
     ]
-       
-past =
-    ul [] [ li [] [ text "meaning",
-        ul [] [ li [] [ text "noun",
-            ol [][li [][text "Def1"],
-            li [][text "Def2"]]],
-        li [] [ text "verb"]]]]
 
 define : Model -> Html Msg
 define model =
@@ -146,7 +139,7 @@ define model =
 getJson : String -> Cmd Msg
 getJson word =
   Http.get
-    { url = ("https://api.dictionaryapi.dev/api/v2/entries/en/" ++ "course")
+    { url = ("https://api.dictionaryapi.dev/api/v2/entries/en/" ++ word)
     , expect = Http.expectJson GotJson nameDecoder
     }
 
@@ -187,4 +180,4 @@ mean lst = case lst of
 describe: List Name -> List (Html msg)
 describe lst = case lst of
     [] -> []
-    (x :: xs) -> li [] [text x.word, ul [] (mean x.meanings)] :: describe xs
+    (x :: xs) -> li [] [text "meaning", ul [] (mean x.meanings)] :: describe xs
