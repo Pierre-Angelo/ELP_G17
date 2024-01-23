@@ -1,4 +1,4 @@
-Module Sucess exposing (..)
+module Sucess exposing (..)
 -- Make a GET request to load a book called "Public Opinion"
 --
 -- Read how it works:
@@ -234,3 +234,6 @@ defs2 lst = case lst of
   (x :: xs) -> case x.definitions of
                [] -> [text "No defs2"]
                (y :: ys) -> div[] [text y.definition]  :: (defs2 xs)
+
+def : List Name -> Html msg
+def names =

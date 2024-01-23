@@ -1,7 +1,7 @@
 module Word exposing (..)
 
-import String
 import Random
+import String
 
 stringToTab: String -> List String
 stringToTab string =
