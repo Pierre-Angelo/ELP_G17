@@ -6313,11 +6313,13 @@ var $author$project$Main$nameDecoder = $elm$json$Json$Decode$oneOf(
 				A2($elm$json$Json$Decode$field, 'word', $elm$json$Json$Decode$string),
 				A2($elm$json$Json$Decode$field, 'meanings', $author$project$Main$decodeLick)))
 		]));
-var $author$project$Main$getJson = $elm$http$Http$get(
-	{
-		expect: A2($elm$http$Http$expectJson, $author$project$Main$GotJson, $author$project$Main$nameDecoder),
-		url: 'https://api.dictionaryapi.dev/api/v2/entries/en/branch'
-	});
+var $author$project$Main$getJson = function (word) {
+	return $elm$http$Http$get(
+		{
+			expect: A2($elm$http$Http$expectJson, $author$project$Main$GotJson, $author$project$Main$nameDecoder),
+			url: 'https://api.dictionaryapi.dev/api/v2/entries/en/' + 'course'
+		});
+};
 var $author$project$Main$myurl = 'http://localhost:8000/static/words.txt';
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -6486,7 +6488,7 @@ var $author$project$Main$update = F2(
 									text,
 									A2($elm$time$Time$toMillis, model.zone, model.time))
 							}),
-						$author$project$Main$getJson);
+						$author$project$Main$getJson(model.answer));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -6539,7 +6541,70 @@ var $author$project$Main$Reveal = {$: 'Reveal'};
 var $elm$html$Html$li = _VirtualDom_node('li');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$def = function (lst) {
+	if (!lst.b) {
+		return _List_Nil;
+	} else {
+		var x = lst.a;
+		var xs = lst.b;
+		return A2(
+			$elm$core$List$cons,
+			A2(
+				$elm$html$Html$li,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(x.definition)
+					])),
+			$author$project$Main$def(xs));
+	}
+};
+var $elm$html$Html$ol = _VirtualDom_node('ol');
+var $author$project$Main$mean = function (lst) {
+	if (!lst.b) {
+		return _List_Nil;
+	} else {
+		var x = lst.a;
+		var xs = lst.b;
+		return A2(
+			$elm$core$List$cons,
+			A2(
+				$elm$html$Html$li,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(x.partOfSpeech),
+						A2(
+						$elm$html$Html$ol,
+						_List_Nil,
+						$author$project$Main$def(x.definitions))
+					])),
+			$author$project$Main$mean(xs));
+	}
+};
 var $elm$html$Html$ul = _VirtualDom_node('ul');
+var $author$project$Main$describe = function (lst) {
+	if (!lst.b) {
+		return _List_Nil;
+	} else {
+		var x = lst.a;
+		var xs = lst.b;
+		return A2(
+			$elm$core$List$cons,
+			A2(
+				$elm$html$Html$li,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(x.word),
+						A2(
+						$elm$html$Html$ul,
+						_List_Nil,
+						$author$project$Main$mean(x.meanings))
+					])),
+			$author$project$Main$describe(xs));
+	}
+};
 var $author$project$Main$define = function (model) {
 	var _v0 = model.json;
 	switch (_v0.$) {
@@ -6581,10 +6646,7 @@ var $author$project$Main$define = function (model) {
 						A2(
 						$elm$html$Html$li,
 						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('coucou')
-							]))
+						$author$project$Main$describe(fullText))
 					]));
 	}
 };
@@ -6656,7 +6718,7 @@ var $author$project$Main$view = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				A2($elm$html$Html$Attributes$style, 'padding-left', '13cm'),
+				A2($elm$html$Html$Attributes$style, 'padding-left', '8cm'),
 				A2($elm$html$Html$Attributes$style, 'font-family', 'sans-serif'),
 				A2($elm$html$Html$Attributes$style, 'line-height', '1cm')
 			]),

@@ -87,7 +87,7 @@ update msg model =
     GotText result ->
        case result of
         Ok text ->
-          ({model | answer = (Word.randomWord text (Time.toMillis model.zone model.time))}, getJson)
+          ({model | answer = (Word.randomWord text (Time.toMillis model.zone model.time))}, getJson model.answer)
         Err _ ->
           ({model | answer = "une erreur"}, Cmd.none)
     Tick newTime ->
@@ -112,7 +112,7 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-  div [ style "padding-left" "13cm", style "font-family" "sans-serif",style "line-height" "1cm"] 
+  div [ style "padding-left" "8cm", style "font-family" "sans-serif",style "line-height" "1cm"]
     [ h1 [ style"font-size" "50px"] [ text model.title]
       ,(define model)
       ,div[][strong [] [text model.guess]]
@@ -138,15 +138,15 @@ define model =
 
     Success fullText ->
       --pre [] [ text fullText ]
-      ul [] [li [] [text "coucou"]]
+      ul [] [li [] (describe fullText)]
 
 -- HTTP
 
 
-getJson : Cmd Msg
-getJson =
+getJson : String -> Cmd Msg
+getJson word =
   Http.get
-    { url = "https://api.dictionaryapi.dev/api/v2/entries/en/branch"
+    { url = ("https://api.dictionaryapi.dev/api/v2/entries/en/" ++ "course")
     , expect = Http.expectJson GotJson nameDecoder
     }
 
@@ -173,3 +173,18 @@ decodeDefinition =
   Json.Decode.map Definition
     (field "definition" string)
     |>Json.Decode.list
+
+def: List Definition -> List (Html msg)
+def lst = case lst of
+    [] -> []
+    (x :: xs) -> li [] [text x.definition] :: def xs
+
+mean: List Lick -> List (Html msg)
+mean lst = case lst of
+    [] -> []
+    (x :: xs) -> li [] [text x.partOfSpeech, ol [] (def x.definitions)] :: mean xs
+
+describe: List Name -> List (Html msg)
+describe lst = case lst of
+    [] -> []
+    (x :: xs) -> li [] [text x.word, ul [] (mean x.meanings)] :: describe xs
