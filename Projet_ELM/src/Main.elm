@@ -39,7 +39,9 @@ init : () -> (Model, Cmd Msg)
 init _ = (initModel, Task.perform AdjustTimeZone Time.here)
 
 
-type alias Name =				--Création de trois types afin de décoder le Json
+
+--Création de trois types afin de décoder le Json
+type alias Name =
   { word : String
     ,meanings : List Lick
   }
@@ -145,7 +147,8 @@ getJson word =
     }
 
 
-nameDecoder : Decoder (List Name)		--Trois fonctions qui permettent de décoder le Json
+--Trois fonctions qui permettent de décoder le Json
+nameDecoder : Decoder (List Name)
 nameDecoder =
   Json.Decode.oneOf
   [
@@ -168,7 +171,9 @@ decodeDefinition =
     (field "definition" string)
     |>Json.Decode.list
 
-def: List Definition -> List (Html msg)			--Trois fonctions qui permettent d'extraire les définitions du fichier json décodé
+
+--Trois fonctions qui permettent d'extraire les définitions du fichier json décodé
+def: List Definition -> List (Html msg)
 def lst = case lst of
     [] -> []
     (x :: xs) -> li [] [text x.definition] :: def xs
