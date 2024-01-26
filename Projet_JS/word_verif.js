@@ -36,8 +36,7 @@ const letter_verification = function(l, letters) {
     return res;
 }
 
-const word_verification = function (word, letters) {
-    let w = str_to_tab(word);
+const word_verification = function (w, letters) {
     let poss = possibilities(letters);
     let res = true;
     for (let i = 0; i < w.length; i++) {
@@ -46,4 +45,12 @@ const word_verification = function (word, letters) {
         }
     }
     return res;
+}
+
+const verif = function (word, letters) {
+    if ((word.length < 3) || (word.length > 9)) {
+        return false
+    } else {
+        return word_verification(str_to_tab(word), letters)
+    }
 }
