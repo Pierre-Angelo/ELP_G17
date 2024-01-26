@@ -38,6 +38,9 @@ myurl = "http://localhost:8000/static/words.txt"
 init : () -> (Model, Cmd Msg)
 init _ = (initModel, Task.perform AdjustTimeZone Time.here)
 
+
+
+--Création de trois types afin de décoder le Json
 type alias Name =
   { word : String
     ,meanings : List Lick
@@ -144,6 +147,7 @@ getJson word =
     }
 
 
+--Trois fonctions qui permettent de décoder le Json
 nameDecoder : Decoder (List Name)
 nameDecoder =
   Json.Decode.oneOf
@@ -167,6 +171,8 @@ decodeDefinition =
     (field "definition" string)
     |>Json.Decode.list
 
+
+--Trois fonctions qui permettent d'extraire les définitions du fichier json décodé
 def: List Definition -> List (Html msg)
 def lst = case lst of
     [] -> []
