@@ -11,62 +11,6 @@ const combien = [14, 4, 7, 5, 19, 2, 4, 2, 11, 1, 1, 6, 5, 9, 8, 4, 1, 10, 7, 9,
 let listOfLetters = [];
 
 
-const str_to_tab = function (x){ //transform word into list of letters
-    return x.split('');
-}
-
-const add_letter = function(l, letters) {
-    let added = false;
-    for (let i = 0; i < letters.length; i++) {
-        if (letters[i][0] === l) {
-            letters[i][1]++;
-            added = true
-        }
-    }
-    if (added === false){
-        letters.push([l, 1]);
-    }
-}
-
-const possibilities = function(letters) { //ajoute chaque lettre(liste) ds une autre liste
-    let res = [];
-    for (let i = 0; i < letters.length; i++) {
-        add_letter(letters[i], res);
-    }
-    return res;
-}
-
-const letter_verification = function(l, letters) {
-    let res = false;
-    for (let i = 0; i < letters.length; i++) {
-        if ((letters[i][0] === l) && (letters[i][1] > 0)) {
-            letters[i][1]--;
-            res = true;
-        }
-    }
-    return res;
-}
-
-const word_verification = function (w, letters) {// paramètres : liste, liste
-    let poss = possibilities(letters);
-    let res = true;
-    for (let i = 0; i < w.length; i++) { //pour chaque lettre du mot donné
-        if (letter_verification(w[i], poss) === false) {
-            res = false;
-        }
-    }
-    return res;
-}
-
-const verif = function (word, letters) {
-    if ((word.length < 3) || (word.length > 9)) { //si word trop long ou trop petit => non
-        return false
-    } else {
-        return word_verification(str_to_tab(word), letters) //sinon vérifie si possible
-    }
-}
-
-
 //Afin d'initialiser la draw des lettres
 function fillList(number, letter){
 	for (let j = 0; j < number.length ; j++) {
@@ -164,10 +108,10 @@ function inIt (car, liste) {
 
 function putWord (player){
 	let word = activePlayer.enter_word();
-	let verification = verif(word, activePlayer.letters);
+	let verification = word_verif.verif(word, activePlayer.letters);
 	while (!verification) {
 		word = activePlayer.enter_word();
-		verification = verif(word, activePlayer.letters);
+		verification = word_verif.verif(word, activePlayer.letters);
 	}
 	player.carpet.push(word);
 	data = "joueur " + player.id + " : "  + word
