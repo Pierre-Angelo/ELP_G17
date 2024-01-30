@@ -54,3 +54,5 @@ const verif = function (word, letters) {
         return word_verification(str_to_tab(word), letters)
     }
 }
+
+module.exports = { verif };

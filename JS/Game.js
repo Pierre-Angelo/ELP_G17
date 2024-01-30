@@ -1,4 +1,5 @@
 const prompt = require("prompt-sync")();
+const fs = require('fs')
 
 const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P','Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 // pour tester pioche : const combien = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
@@ -198,13 +199,17 @@ function putWord (joueur){
 		verification = verif(word, joueurActif.lettres);
 	}
 	joueur.tapis.push(word);
+	data = "joueur " + player.id + " : "  + word
+	fs.writeFile('log_words.txt', data, (err) => {
+		if (err) throw err;
+	})
 	let wordLettersList = str_to_tab(word);
 	for (let i = 0 ; i < wordLettersList.length; i++) {
 		joueur.lettres = remove(joueur.lettres, joueur.lettres.indexOf(wordLettersList[i]));
 	}
 }
 
-function visible(nb) {
+function jump_line(nb) {
 	for (i = 0 ; i< nb ; i++) {
 		console.log("");
 	}
@@ -218,17 +223,17 @@ function game () {
 	let tour = 0;
 	while ((joueur1.tapis.length < 8) && (joueur2.tapis.length < 8) && (listOfLetters.length > 0)) {
 		joueurActif = partie[tour % 2] ;
-		visible(6);
+		jump_line(6);
 		console.log("Joueur " + ((tour % 2) + 1) + ", c'est votre tour :");
 		console.log("Voici votre tapis : ");
 		console.log(joueurActif.tapis);
-		visible(1);
+		jump_line(1);
 		console.log("Voici vos lettres : " + joueurActif.lettres);
-		visible(2);
+		jump_line(2);
 		tourDePioche(tour, joueurActif);
-		visible(3);
+		jump_line(3);
 		console.log("Voici vos lettres après la pioche : " + joueurActif.lettres);
-		visible(1);
+		jump_line(1);
 		if (joueurActif.lettres.length >= 3) {
 			putWord(joueurActif);
 			console.log("Voici votre nouveau tapis : ");
