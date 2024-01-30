@@ -1,7 +1,5 @@
 const prompt = require('prompt-sync')({sigint: true});
-function coucou(){
-    console.log("coucou")
-}
+
 
 function create_player(pid){
     player = {
@@ -25,7 +23,7 @@ function create_player(pid){
             }
             console.log(res);
         },
-        entrer_word :  function(){
+        enter_word :  function(){
             return prompt("Entrez votre word : ");
         }
     
