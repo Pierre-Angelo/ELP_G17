@@ -40,6 +40,7 @@ function drawTurn (tour, player){
 			let io = drawLetter();
 			player.letters.push(io);
 		}
+		console.log("Vous avez pioché six fois.");
 	}
 	else {
 		console.log("0 pour piocher ou 1 pour remplacer 3 lettres : ");
@@ -61,7 +62,7 @@ function drawTurn (tour, player){
 			}
 			else {
 				console.log("Vous n'avez pas au moins trois lettres à échanger...");
-				console.log("Vous allez drawr à la place.");
+				console.log("Vous allez piocher à la place.");
 				console.log("");
 				let framboise = drawLetter()
 				player.letters.push(framboise);
@@ -128,6 +129,136 @@ function jump_line(nb) {
 	}
 }
 
+function actionOfPlayer (player){
+
+	let decision = 0;	
+
+	if ((player.carpet.length <= 0) && (player.letters.length < 3)){
+		decision = 0;
+	}
+
+	else if (player.letters.length < 3) {
+		console.log("Voulez vous modifier un mot dèjà placé [1] ou passer votre tour [2] ?");
+		decision = prompt("");
+		while ((decision != '1') && (decision != '2')) {
+			console.log("Mauvaise réponse.");
+			console.log("1 pour modifier un mot, 2 pour passer votre tour: ");
+			decision = prompt("");
+		}
+	}
+
+	else if (player.carpet.length <= 0) {
+		console.log("Voulez vous poser un mot [0] ou passer votre tour [2] ?");
+		decision = prompt("");
+		while ((decision != '0') && (decision != '2')) {
+			console.log("Mauvaise réponse.");
+			console.log("0 pour poser un mot, 2 pour passer votre tour: ");
+			decision = prompt("");
+		}
+	}
+
+	else {
+		console.log("Voulez vous poser un mot [0], modifier un mot dèjà placé [1] ou passer votre tour [2] ?");
+		decision = prompt("");
+		while ((decision != '0') && (decision != '1') && (decision != '2')) {
+			console.log("Mauvaise réponse.");
+			console.log("0 pour poser un mot, 1 pour modifier un mot, 2 pour passer votre tour: ");
+			decision = prompt("");
+		}
+	}
+	
+	if (decision == 0){
+		putWord(player);
+	}
+	else if (decision == 1) {
+		console.log("Vous voulez changer un mot sur votre tapis:");
+		player.disp_carpet();
+		changeAWord(player);
+	}
+	else {
+		console.log("Vous passez votre tour.");
+	}
+	console.log("Voici votre nouveau tapis : ");
+	player.disp_carpet();
+}
+
+
+function changeAWord(player) {
+	console.log("Quel mot voulez-vous changer? (0, 1, 2, 3, ...)");
+	let decision = prompt ("");
+	while (decision >= player.carpet.length) {
+		console.log("Il n'y a pas de mot à modifier à cet endroit.");
+		console.log("Quel mot voulez vous changer? (0, 1, 2, 3, ...)");
+		decision = prompt("");
+	}
+
+	console.log("Voici vos lettres : ");
+	player.disp_letters();
+
+	let initial = word_verif.str_to_tab(player.carpet[decision]);
+	let word = player.enter_word();
+	
+	while (!(hasSameLetters(initial, word_verif.str_to_tab(word))) && (!(siblings(initial, word_verif.str_to_tab(word))))) {
+		word = player.enter_word();
+	// tant que le mot est identique ou ne possède pas toutes les lettres du mot
+	}
+
+	let possibleLetters = []
+	possibleLetters = copy(possibleLetters, player.letters);
+
+	for (let i = 0; i< player.carpet[decision].length; i++){
+		possibleLetters.push(player.carpet[decision][i]);
+	}
+
+	let verification = word_verif.verif(word, possibleLetters);
+	while (!verification) {
+		word = player.enter_word();
+		verification = word_verif.verif(word, possibleLetters);
+	}
+
+	player.carpet = remove(player.carpet, decision);
+	player.carpet.push(word);
+	let wordLettersList = word_verif.str_to_tab(word);
+
+	for (let i = 0 ; i < wordLettersList.length; i++) {
+		if (!(inIt(wordLettersList[i], initial))) {
+			player.letters = remove(player.letters, player.letters.indexOf(wordLettersList[i]));
+		}
+	}
+}
+
+
+function siblings (initWordList, givenWordList) {
+	let indeed = true ;
+	if (!((initWordList.length == givenWordList.length)) && (!(hasSameLetters(initWordList, givenWordList)))) {
+		indeed = false;
+	}
+	return indeed ;
+}
+
+function hasSameLetters (initWordList, givenWordList) {
+	let indeed = true ;
+	let temp = [];
+	temp = copy(temp, givenWordList);
+	for (let i = 0 ; i <= initWordList.length ; i ++) {
+		if (!(inIt(initWordList[i], temp))) {
+			indeed = false ;
+		}
+		else {
+			temp = remove(temp, temp.indexOf(initWordList[i]));
+		}
+	}
+	return indeed ;
+}
+
+function copy(emptyLi, fullLi) {
+	for (let i =0 ; i <= fullLi.length ; i++) {
+		emptyLi.push(fullLi[i]);
+	}
+	return emptyLi;
+}
+
+
 function game () {
 	fillList(combien, alphabet); //initialisation : remplit la draw
 	let game_log = "";
@@ -141,17 +272,13 @@ function game () {
 		console.log("joueur " + ((tour % 2) + 1) + ", c'est votre tour :");
 		activePlayer.disp_carpet();
 		jump_line(1);
-		activePlayer.disp_letters
-		jump_line(2);
+		activePlayer.disp_letters();
+		//jump_line(2);
 		drawTurn(tour, activePlayer);
 		jump_line(3);
 		activePlayer.disp_letters();
 		jump_line(1);
-		if (activePlayer.letters.length >= 3) {
-			game_log = putWord(activePlayer,game_log);
-			console.log("Voici votre nouveau tapis : ");
-			console.log(activePlayer.carpet);
-		}
+		actionOfPlayer(activePlayer);
 		tour = tour + 1;
 	}
 	console.log("Fin de partie au bout de " + Math.round(tour/2) + " tours.");
