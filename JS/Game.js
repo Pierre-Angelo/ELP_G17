@@ -34,7 +34,7 @@ function drawLetter () {
 };
 
 
-function tourDedraw (tour, player){
+function drawTurn (tour, player){
 	if ((tour == 0) || (tour == 1)){	//dépend de comment on implémente tour
 		for (let i =0 ; i < 6 ; i++) {
 			let io = drawLetter();
@@ -42,11 +42,11 @@ function tourDedraw (tour, player){
 		}
 	}
 	else {
-		console.log("0 pour draw ou 1 pour remplacer 3 lettres : ");
+		console.log("0 pour piocher ou 1 pour remplacer 3 lettres : ");
 		let decision = prompt("");
 		while ((decision != '0') && (decision != '1')) {
 			console.log("Mauvaise réponse.");
-			console.log("0 pour draw ou 1 pour remplacer 3 lettres : ");
+			console.log("0 pour piocher ou 1 pour remplacer 3 lettres : ");
 			decision = prompt("");
 		}		
 		if (decision == 0) {
@@ -106,7 +106,7 @@ function inIt (car, liste) {
 	return res;
 }
 
-function putWord (player){
+function putWord (player,g_log){
 	let word = activePlayer.enter_word();
 	let verification = word_verif.verif(word, activePlayer.letters);
 	while (!verification) {
@@ -114,14 +114,12 @@ function putWord (player){
 		verification = word_verif.verif(word, activePlayer.letters);
 	}
 	player.carpet.push(word);
-	data = "joueur " + player.id + " : "  + word
-	fs.writeFile('log_words.txt', data, (err) => {
-		if (err) throw err;
-	})
+	g_log = g_log  + "joueur " + player.id + " : "  + word + "\n"
 	let wordLettersList = word_verif.str_to_tab(word);
 	for (let i = 0 ; i < wordLettersList.length; i++) {
 		player.letters = remove(player.letters, player.letters.indexOf(wordLettersList[i]));
 	}
+	return g_log
 }
 
 function jump_line(nb) {
@@ -132,6 +130,7 @@ function jump_line(nb) {
 
 function game () {
 	fillList(combien, alphabet); //initialisation : remplit la draw
+	let game_log = "";
 	let player1 = player.create_player(1);
 	let player2 = player.create_player(2);
 	let partie = [player1, player2];
@@ -144,12 +143,12 @@ function game () {
 		jump_line(1);
 		activePlayer.disp_letters
 		jump_line(2);
-		tourDedraw(tour, activePlayer);
+		drawTurn(tour, activePlayer);
 		jump_line(3);
 		activePlayer.disp_letters();
 		jump_line(1);
 		if (activePlayer.letters.length >= 3) {
-			putWord(activePlayer);
+			game_log = putWord(activePlayer,game_log);
 			console.log("Voici votre nouveau tapis : ");
 			console.log(activePlayer.carpet);
 		}
@@ -160,8 +159,16 @@ function game () {
 	console.log("Scores :")
 	console.log("Joueur 1 : " + end.score(player1.carpet))
 	console.log("Joueur 2 : " + end.score(player2.carpet))
+
+	return game_log
 }
 
-game();
+ 
+
+g_log = game();
+
+fs.writeFile('log_words.txt', g_log, (err) => {
+	if (err) throw err;
+})
 
 //console.log(listOfLetters);
