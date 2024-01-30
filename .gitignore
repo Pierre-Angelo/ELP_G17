@@ -4,3 +4,7 @@ Projet_ELM/elm-stuff/0.19.1/lock
 *.elmi
 *.elmo
 Projet_ELM/index.html
+package-lock.json
+node_modules
+package.json
+node_modules
