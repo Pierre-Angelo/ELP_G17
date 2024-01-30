@@ -2,6 +2,7 @@ const prompt = require("prompt-sync")();
 const fs = require('fs')
 const player = require('.\\Player.js')
 const word_verif = require('.\\WordVerif.js')
+const end = require('.\\End.js')
 
 const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P','Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 // pour tester draw : const combien = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
@@ -169,11 +170,11 @@ function putWord (player){
 		verification = verif(word, activePlayer.letters);
 	}
 	player.carpet.push(word);
-	data = "player " + player.id + " : "  + word
+	data = "joueur " + player.id + " : "  + word
 	fs.writeFile('log_words.txt', data, (err) => {
 		if (err) throw err;
 	})
-	let wordLettersList = str_to_tab(word);
+	let wordLettersList = word_verif.str_to_tab(word);
 	for (let i = 0 ; i < wordLettersList.length; i++) {
 		player.letters = remove(player.letters, player.letters.indexOf(wordLettersList[i]));
 	}
@@ -191,7 +192,7 @@ function game () {
 	let player2 = player.create_player(2);
 	let partie = [player1, player2];
 	let tour = 0;
-	while ((player1.carpet.length < 8) && (player2.carpet.length < 8) && (listOfLetters.length > 0)) {
+	while (end.is_still_going(player1.carpet, player2.carpet, listOfLetters)) {
 		activePlayer = partie[tour % 2] ;
 		jump_line(6);
 		console.log("joueur " + ((tour % 2) + 1) + ", c'est votre tour :");
@@ -211,7 +212,10 @@ function game () {
 		tour = tour + 1;
 	}
 	console.log("Fin de partie au bout de " + Math.round(tour/2) + " tours.");
-	console.log("Le joueur " + (((tour-1) % 2) + 1) + " a gagné.");
+	console.log(end.winner(player1.carpet, player2.carpet));
+	console.log("Scores :")
+	console.log("Joueur 1 : " + end.score(player1.carpet))
+	console.log("Joueur 2 : " + end.score(player2.carpet))
 }
 
 game();

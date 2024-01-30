@@ -58,4 +58,4 @@ const verif = function (word, letters) {
     }
 }
 
-module.exports = { verif };
+module.exports = { verif, str_to_tab };
