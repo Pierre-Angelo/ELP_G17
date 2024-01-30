@@ -129,7 +129,7 @@ function jump_line(nb) {
 	}
 }
 
-function actionOfPlayer (player){
+function actionOfPlayer (player, otherPlayer){
 
 	let decision = 0;	
 
@@ -173,7 +173,7 @@ function actionOfPlayer (player){
 	else if (decision == 1) {
 		console.log("Vous voulez changer un mot sur votre tapis:");
 		player.disp_carpet();
-		changeAWord(player);
+		changeAWord(player, otherPlayer);
 	}
 	else {
 		console.log("Vous passez votre tour.");
@@ -183,7 +183,7 @@ function actionOfPlayer (player){
 }
 
 
-function changeAWord(player) {
+function changeAWord(player, otherPlayer) {
 	console.log("Quel mot voulez-vous changer? (0, 1, 2, 3, ...)");
 	let decision = prompt ("");
 	while (decision >= player.carpet.length) {
@@ -215,9 +215,14 @@ function changeAWord(player) {
 		word = player.enter_word();
 		verification = word_verif.verif(word, possibleLetters);
 	}
-
+	
 	player.carpet = remove(player.carpet, decision);
-	player.carpet.push(word);
+	if (otherPlayer != 0) {
+		otherPlayer.carpet.push(word);
+	}
+	else{
+		player.carpet.push(word);
+	}
 	let wordLettersList = word_verif.str_to_tab(word);
 
 	for (let i = 0 ; i < wordLettersList.length; i++) {
@@ -258,6 +263,19 @@ function copy(emptyLi, fullLi) {
 	return emptyLi;
 }
 
+function jarnac (player, tour, otherPlayer) {
+	if (otherPlayer.carpet.length > 0) {
+		console.log("Voulez-vous arnaquer votre adversaire? [1] => oui, [0] => non");
+		let answer = prompt("");
+		if (answer == 1) {
+			jump_line(2);
+			console.log("JARNAC!");
+			jump_line(2);
+			changeAWord(otherPlayer, player)
+			// revient à modifier le mot mais en le donnant à l'autre joueur
+		}
+	}
+}
 
 function game () {
 	fillList(combien, alphabet); //initialisation : remplit la draw
@@ -268,8 +286,9 @@ function game () {
 	let tour = 0;
 	while (end.is_still_going(player1.carpet, player2.carpet, listOfLetters)) {
 		activePlayer = partie[tour % 2] ;
-		jump_line(6);
+		jump_line(9);
 		console.log("joueur " + ((tour % 2) + 1) + ", c'est votre tour :");
+		jarnac(activePlayer, tour, partie[(tour + 1) % 2]);
 		activePlayer.disp_carpet();
 		jump_line(1);
 		activePlayer.disp_letters();
@@ -278,7 +297,7 @@ function game () {
 		jump_line(3);
 		activePlayer.disp_letters();
 		jump_line(1);
-		actionOfPlayer(activePlayer);
+		actionOfPlayer(activePlayer, 0);
 		tour = tour + 1;
 	}
 	console.log("Fin de partie au bout de " + Math.round(tour/2) + " tours.");
