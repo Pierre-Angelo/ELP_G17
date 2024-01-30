@@ -1,5 +1,6 @@
 
 
+//transform word into list of letters
 const str_to_tab = function (x){
     return x.split('');
 }
@@ -17,6 +18,7 @@ const add_letter = function(l, letters) {
     }
 }
 
+//create a list of tuples describing the number of occurences of the letters in the list
 const possibilities = function(letters) {
     let res = [];
     for (let i = 0; i < letters.length; i++) {
@@ -48,6 +50,7 @@ const word_verification = function (w, letters) {
 }
 
 const verif = function (word, letters) {
+    //if the word is to long or to short
     if ((word.length < 3) || (word.length > 9)) {
         return false
     } else {
