@@ -1,0 +1,9 @@
+Le joueur 1 commence avec : Z,D,S,A,E,I.
+joueur 1 ajoute : ZDS.
+Le joueur 2 commence avec : I,S,I,U,U,L.
+joueur 2 ajoute : ISIUUL.
+Le joueur 1 pioche : R.
+joueur 1 ajoute : AEIR.
+Le joueur 2 a gagné !
+Joueur 1 : 25
+Joueur 2 : 36

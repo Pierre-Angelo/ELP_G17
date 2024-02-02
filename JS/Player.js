@@ -24,7 +24,7 @@ function create_player(pid){
             console.log(res);
         },
         enter_word :  function(){
-            return prompt("Entrez votre word : ").toUpperCase();
+            return prompt("Entrez votre mot : ").toUpperCase();
         }
     
     }

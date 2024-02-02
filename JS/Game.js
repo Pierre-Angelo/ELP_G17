@@ -9,7 +9,7 @@ const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M
 const combien = [14, 4, 7, 5, 19, 2, 4, 2, 11, 1, 1, 6, 5, 9, 8, 4, 1, 10, 7, 9, 8, 2, 1, 1, 1, 2];
 
 let listOfLetters = [];
-
+let game_log = ""
 
 //Afin d'initialiser la draw des lettres
 function fillList(number, letter){
@@ -41,6 +41,7 @@ function drawTurn (tour, player){
 			player.letters.push(io);
 		}
 		console.log("Vous avez pioché six fois.");
+		game_log = game_log + "Le joueur " + player.id + " commence avec : " + player.letters.toString() + ".\n" ;
 	}
 	else {
 		console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
@@ -51,9 +52,10 @@ function drawTurn (tour, player){
 			decision = prompt("");
 		}		
 		if (decision == 0) {
-			let framboise = drawLetter()
-			player.letters.push(framboise);
-			console.log("Vous avez tirez la lettre " + framboise);
+			let raspberry = drawLetter()
+			player.letters.push(raspberry);
+			console.log("Vous avez tirez la lettre " + raspberry);
+			game_log = game_log + "Le joueur " + player.id + " pioche : " + raspberry +".\n" ;
 		}
 		else if (decision == 1) {
 			if (player.letters.length >= 3) {
@@ -67,6 +69,7 @@ function drawTurn (tour, player){
 				let framboise = drawLetter()
 				player.letters.push(framboise);
 				console.log("Vous avez tirez la lettre " + framboise);
+				game_log = game_log + "Le joueur " + player.id + " pioche : " + framboise ;
 			}
 		}
 	}
@@ -77,19 +80,21 @@ function switchLetters (player) {
 	let echange = [];
 	for (let i = 0; i < 3 ; i++) {
 		console.log("Choisissez la " + (i + 1) + "eme lettre.");
-		let alors = prompt("");
+		let alors = prompt("").toUpperCase();
 		while (!(inIt(alors, player.letters))) {
 			console.log("Vous ne possédez pas cette lettre.");
 			console.log("Tapez une autre lettre.");
-			alors = prompt("");
+			alors = prompt("").toUpperCase;
 		}
 		echange.push(alors);
+		discardedLetter = player.letters.indexOf(alors)
 		player.letters = remove(player.letters, player.letters.indexOf(alors));
 	}
 	for (let i = 0; i < 3 ; i++) {
-		let pasteque = drawLetter();
-		console.log("Vous avez pioché " + pasteque);
-		player.letters.push(pasteque);
+		let watermelon = drawLetter();
+		console.log("Vous avez pioché " + watermelon);
+		player.letters.push(watermelon);
+		game_log = game_log + "Le joueur" + player.id + "échange " + discardedLetter + " pour " + watermelon + ".\n" ;
 	}
 	for (let i = 0; i < 3 ; i++) {
 		listOfLetters.push(echange[i])
@@ -107,7 +112,7 @@ function inIt (car, liste) {
 	return res;
 }
 
-function putWord (player,g_log){
+function putWord (player){
 	let word = activePlayer.enter_word();
 	let verification = word_verif.verif(word, activePlayer.letters);
 	while (!verification) {
@@ -115,12 +120,11 @@ function putWord (player,g_log){
 		verification = word_verif.verif(word, activePlayer.letters);
 	}
 	player.carpet.push(word);
-	g_log = g_log  + "joueur " + player.id + " : "  + word + "\n"
+	game_log = game_log  + "joueur " + player.id + " ajoute : "  + word + ".\n"
 	let wordLettersList = word_verif.str_to_tab(word);
 	for (let i = 0 ; i < wordLettersList.length; i++) {
 		player.letters = remove(player.letters, player.letters.indexOf(wordLettersList[i]));
 	}
-	return g_log
 }
 
 function jump_line(nb) {
@@ -202,7 +206,7 @@ function changeAWord(player, otherPlayer) {
 		word = player.enter_word();
 	// tant que le mot est identique ou ne possède pas toutes les lettres du mot
 	}
-
+	
 	let possibleLetters = []
 	possibleLetters = copy(possibleLetters, player.letters);
 
@@ -219,9 +223,11 @@ function changeAWord(player, otherPlayer) {
 	player.carpet = remove(player.carpet, decision);
 	if (otherPlayer != 0) {
 		otherPlayer.carpet.push(word);
+		game_log = game_log  + "joueur " + otherPlayer.id + " (j)arnaque le mot "+ decision+" et ajoute : "  + word + ".\n"
 	}
 	else{
 		player.carpet.push(word);
+		game_log = game_log  + "joueur " + player.id + " change le mot "+ decision+" : "  + word + ".\n"
 	}
 	let wordLettersList = word_verif.str_to_tab(word);
 
@@ -266,7 +272,7 @@ function copy(emptyLi, fullLi) {
 function jarnac (player, tour, otherPlayer) {
 	if (otherPlayer.carpet.length > 0) {
 		let answer = -1;
-		console.log("Voulez-vous faire un coup du Jarnac votre adversaire? [1] => oui, [0] => non");
+		console.log("Voulez-vous (j)arnaquer votre adversaire? [1] => oui, [0] => non");
 		console.log("Vous avez 3 secondes pour vous décider.")
 		let time_ini = Date.now();
 		while (answer == -1) {
@@ -294,8 +300,7 @@ function jarnac (player, tour, otherPlayer) {
 }
 
 function game () {
-	fillList(combien, alphabet); //initialisation : remplit la draw
-	let game_log = "";
+	fillList(combien, alphabet); //initialisation : remplit la draw;
 	let player1 = player.create_player(1);
 	let player2 = player.create_player(2);
 	let partie = [player1, player2];
@@ -318,18 +323,19 @@ function game () {
 	}
 	console.log("Fin de partie au bout de " + Math.round(tour/2) + " tours.");
 	console.log(end.winner(player1.carpet, player2.carpet));
+	game_log = game_log + end.winner(player1.carpet, player2.carpet) + "\n"
 	console.log("Scores :")
 	console.log("Joueur 1 : " + end.score(player1.carpet))
 	console.log("Joueur 2 : " + end.score(player2.carpet))
-
-	return game_log
+	game_log = game_log + "Score du Joueur 1 : " + end.score(player1.carpet) + "\n"
+	game_log = game_log + "Score du Joueur 2 : " + end.score(player2.carpet) + "\n"
 }
 
  
 
-g_log = game();
+game();
 
-fs.writeFile('log_words.txt', g_log, (err) => {
+fs.writeFile('log_game.txt', game_log, (err) => {
 	if (err) throw err;
 })
 
