@@ -265,14 +265,30 @@ function copy(emptyLi, fullLi) {
 
 function jarnac (player, tour, otherPlayer) {
 	if (otherPlayer.carpet.length > 0) {
-		console.log("Voulez-vous arnaquer votre adversaire? [1] => oui, [0] => non");
-		let answer = prompt("");
-		if (answer == 1) {
-			jump_line(2);
-			console.log("JARNAC!");
-			jump_line(2);
-			changeAWord(otherPlayer, player)
-			// revient à modifier le mot mais en le donnant à l'autre joueur
+		let answer = -1;
+		console.log("Voulez-vous faire un coup du Jarnac votre adversaire? [1] => oui, [0] => non");
+		console.log("Vous avez 3 secondes pour vous décider.")
+		let time_ini = Date.now();
+		while (answer == -1) {
+			answer = prompt("");
+			let time_prompt = Date.now();
+			if ((time_prompt - time_ini) < 3000) {
+				if (answer == 1) {
+					jump_line(2);
+					console.log("JARNAC!");
+					jump_line(2);
+					changeAWord(otherPlayer, player);
+					// revient à modifier le mot mais en le donnant à l'autre joueur
+				} else if (answer == 0) {
+					console.log("");
+				} else {
+					answer = -1
+					console.log("[1] => faire un coup du Jarnac, [0] => ne rien faire");
+				}
+			} else {
+				answer = 0
+				console.log("Limite de temps écoulée")
+			}
 		}
 	}
 }
