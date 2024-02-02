@@ -43,11 +43,11 @@ function drawTurn (tour, player){
 		console.log("Vous avez pioché six fois.");
 	}
 	else {
-		console.log("0 pour piocher ou 1 pour remplacer 3 lettres : ");
+		console.log("[0] pour piocher ou [1] pour remplacer [3] lettres : ");
 		let decision = prompt("");
 		while ((decision != '0') && (decision != '1')) {
 			console.log("Mauvaise réponse.");
-			console.log("0 pour piocher ou 1 pour remplacer 3 lettres : ");
+			console.log("[0] pour piocher ou [1] pour remplacer [3] lettres : ");
 			decision = prompt("");
 		}		
 		if (decision == 0) {
@@ -134,7 +134,7 @@ function actionOfPlayer (player, otherPlayer){
 	let decision = 0;	
 
 	if ((player.carpet.length <= 0) && (player.letters.length < 3)){
-		decision = 0;
+		decision = 2;
 	}
 
 	else if (player.letters.length < 3) {
@@ -142,7 +142,7 @@ function actionOfPlayer (player, otherPlayer){
 		decision = prompt("");
 		while ((decision != '1') && (decision != '2')) {
 			console.log("Mauvaise réponse.");
-			console.log("1 pour modifier un mot, 2 pour passer votre tour: ");
+			console.log("[1] pour modifier un mot, [2] pour passer votre tour: ");
 			decision = prompt("");
 		}
 	}
@@ -152,7 +152,7 @@ function actionOfPlayer (player, otherPlayer){
 		decision = prompt("");
 		while ((decision != '0') && (decision != '2')) {
 			console.log("Mauvaise réponse.");
-			console.log("0 pour poser un mot, 2 pour passer votre tour: ");
+			console.log("[0] pour poser un mot, [2] pour passer votre tour: ");
 			decision = prompt("");
 		}
 	}
@@ -162,7 +162,7 @@ function actionOfPlayer (player, otherPlayer){
 		decision = prompt("");
 		while ((decision != '0') && (decision != '1') && (decision != '2')) {
 			console.log("Mauvaise réponse.");
-			console.log("0 pour poser un mot, 1 pour modifier un mot, 2 pour passer votre tour: ");
+			console.log("[0] pour poser un mot, [1] pour modifier un mot, [2] pour passer votre tour: ");
 			decision = prompt("");
 		}
 	}
