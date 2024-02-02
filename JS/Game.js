@@ -43,11 +43,11 @@ function drawTurn (tour, player){
 		console.log("Vous avez pioché six fois.");
 	}
 	else {
-		console.log("[0] pour piocher ou [1] pour remplacer [3] lettres : ");
+		console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
 		let decision = prompt("");
 		while ((decision != '0') && (decision != '1')) {
 			console.log("Mauvaise réponse.");
-			console.log("[0] pour piocher ou [1] pour remplacer [3] lettres : ");
+			console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
 			decision = prompt("");
 		}		
 		if (decision == 0) {
