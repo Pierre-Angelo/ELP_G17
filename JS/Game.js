@@ -44,32 +44,40 @@ function drawTurn (tour, player){
 		game_log = game_log + "Le joueur " + player.id + " commence avec : " + player.letters.toString() + ".\n" ;
 	}
 	else {
-		console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
-		let decision = prompt("");
-		while ((decision != '0') && (decision != '1')) {
-			console.log("Mauvaise réponse.");
-			console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
-			decision = prompt("");
-		}		
-		if (decision == 0) {
-			let raspberry = drawLetter()
-			player.letters.push(raspberry);
-			console.log("Vous avez tirez la lettre " + raspberry);
-			game_log = game_log + "Le joueur " + player.id + " pioche : " + raspberry +".\n" ;
+		if (tour == -5) {
+			let dragonFruit = drawLetter();
+			player.letters.push(dragonFruit);
+			console.log("Vous piochez la lettre : " + dragonFruit);
+			game_log = game_log + "Le joueur " + player.id + " pioche : " + dragonFruit +".\n" ;
 		}
-		else if (decision == 1) {
-			if (player.letters.length >= 3) {
-				console.log("Vous avez décidé de remplacer trois lettres.");
-				switchLetters(player);
+		else {
+			console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
+			let decision = prompt("");
+			while ((decision != '0') && (decision != '1')) {
+				console.log("Mauvaise réponse.");
+				console.log("[0] pour piocher ou [1] pour remplacer 3 lettres : ");
+				decision = prompt("");
+			}		
+			if (decision == 0) {
+				let raspberry = drawLetter()
+				player.letters.push(raspberry);
+				console.log("Vous avez tirez la lettre " + raspberry);
+				game_log = game_log + "Le joueur " + player.id + " pioche : " + raspberry +".\n" ;
 			}
-			else {
-				console.log("Vous n'avez pas au moins trois lettres à échanger...");
-				console.log("Vous allez piocher à la place.");
-				console.log("");
-				let framboise = drawLetter()
-				player.letters.push(framboise);
-				console.log("Vous avez tirez la lettre " + framboise);
-				game_log = game_log + "Le joueur " + player.id + " pioche : " + framboise ;
+			else if (decision == 1) {
+				if (player.letters.length >= 3) {
+					console.log("Vous avez décidé de remplacer trois lettres.");
+					switchLetters(player);
+				}
+				else {
+					console.log("Vous n'avez pas au moins trois lettres à échanger...");
+					console.log("Vous allez piocher à la place.");
+					console.log("");
+					let kiwi = drawLetter()
+					player.letters.push(kiwi);
+					console.log("Vous avez tirez la lettre " + kiwi);
+					game_log = game_log + "Le joueur " + player.id + " pioche : " + kiwi ;
+				}
 			}
 		}
 	}
@@ -181,30 +189,31 @@ function actionOfPlayer (player, otherPlayer){
 	}
 	else {
 		console.log("Vous passez votre tour.");
+		decision = 2;
 	}
 	console.log("Voici votre nouveau tapis : ");
 	player.disp_carpet();
+	return decision;
 }
 
 
 function changeAWord(player, otherPlayer) {
 	console.log("Quel mot voulez-vous changer? (0, 1, 2, 3, ...)");
-	let decision = prompt ("");
-	while (decision >= player.carpet.length) {
+	let decision = parseInt(prompt (""));
+	while ((decision >= player.carpet.length) || (decision != decision)) {
 		console.log("Il n'y a pas de mot à modifier à cet endroit.");
 		console.log("Quel mot voulez vous changer? (0, 1, 2, 3, ...)");
-		decision = prompt("");
+		decision = parseInt(prompt(""));
 	}
 
-	console.log("Voici vos lettres : ");
 	player.disp_letters();
 
 	let initial = word_verif.str_to_tab(player.carpet[decision]);
 	let word = player.enter_word();
 	
-	while (!(hasSameLetters(initial, word_verif.str_to_tab(word))) && (!(siblings(initial, word_verif.str_to_tab(word))))) {
+	while (hasSameLetters(initial, word_verif.str_to_tab(word)) != (siblings(initial, word_verif.str_to_tab(word)))) {
 		word = player.enter_word();
-	// tant que le mot est identique ou ne possède pas toutes les lettres du mot
+		// tant que le mot est identique ou ne possède pas toutes les lettres du mot
 	}
 	
 	let possibleLetters = []
@@ -231,17 +240,31 @@ function changeAWord(player, otherPlayer) {
 	}
 	let wordLettersList = word_verif.str_to_tab(word);
 
-	for (let i = 0 ; i < wordLettersList.length; i++) {
-		if (!(inIt(wordLettersList[i], initial))) {
-			player.letters = remove(player.letters, player.letters.indexOf(wordLettersList[i]));
+	let toSubstract = substract(initial, wordLettersList);	
+
+	for (let i = 0 ; i < toSubstract.length; i++) {
+		if (toSubstract[i] != undefined) {
+			player.letters = remove(player.letters, player.letters.indexOf(toSubstract[i]));
 		}
 	}
 }
 
 
+function substract(wordInit, wordGiven) {
+	let manguo = [];
+	manguo = copy(manguo, wordGiven);
+	for (let i = 0 ; i < wordGiven.length; i++) {
+		if ((inIt(wordGiven[i], wordInit)) && (wordGiven[i] != undefined)) {
+			wordInit = remove(wordInit, wordInit.indexOf(wordGiven[i]));
+			manguo = remove(manguo, manguo.indexOf(wordGiven[i]));
+		}
+	}
+	return manguo;	
+}
+
 function siblings (initWordList, givenWordList) {
 	let indeed = true ;
-	if (!((initWordList.length == givenWordList.length)) && (!(hasSameLetters(initWordList, givenWordList)))) {
+	if (((initWordList.length == givenWordList.length) && (hasSameLetters(initWordList, givenWordList)))) {
 		indeed = false;
 	}
 	return indeed ;
@@ -305,6 +328,7 @@ function game () {
 	let player2 = player.create_player(2);
 	let partie = [player1, player2];
 	let tour = 0;
+	let playAgain = 0;
 	while (end.is_still_going(player1.carpet, player2.carpet, listOfLetters)) {
 		activePlayer = partie[tour % 2] ;
 		jump_line(9);
@@ -313,12 +337,18 @@ function game () {
 		activePlayer.disp_carpet();
 		jump_line(1);
 		activePlayer.disp_letters();
-		//jump_line(2);
 		drawTurn(tour, activePlayer);
 		jump_line(3);
 		activePlayer.disp_letters();
 		jump_line(1);
-		actionOfPlayer(activePlayer, 0);
+		playAgain = actionOfPlayer(activePlayer, 0);
+		while ((playAgain != 2) && (end.is_still_going(player1.carpet, player2.carpet, listOfLetters))) {
+			drawTurn(-5, activePlayer);
+			jump_line(3);
+			activePlayer.disp_letters();
+			jump_line(1);
+			playAgain = actionOfPlayer(activePlayer, 0);
+		}
 		tour = tour + 1;
 	}
 	console.log("Fin de partie au bout de " + Math.round(tour/2) + " tours.");
